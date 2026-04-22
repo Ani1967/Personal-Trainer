@@ -1,0 +1,53 @@
+name: CI/CD — Personal Trainer
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate HTML
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check index.html exists
+        run: test -f index.html && echo "index.html found"
+
+      - name: Validate HTML structure
+        run: |
+          python3 -c "
+          with open('index.html') as f:
+              content = f.read()
+          assert '<!DOCTYPE html>' in content, 'Missing DOCTYPE'
+          assert '<html' in content, 'Missing html tag'
+          assert '</html>' in content, 'Missing closing html tag'
+          assert 'startTimer' in content, 'Missing startTimer function'
+          assert 'pauseTimer' in content, 'Missing pauseTimer function'
+          assert 'resetTimer' in content, 'Missing resetTimer function'
+          print('All checks passed')
+          "
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

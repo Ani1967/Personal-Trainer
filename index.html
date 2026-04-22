@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>অ্যাডভান্সড টাইমার</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .timer-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .timer-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .timer-display h1 {
+            font-size: 4em;
+            color: #333;
+            font-weight: 300;
+            letter-spacing: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .timer-display .time {
+            font-size: 8em;
+            font-weight: bold;
+            color: #667eea;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 15px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer-display .time .colon {
+            font-size: 6em;
+            color: #999;
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0.3; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 10px;
+            transition: width 1s linear;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+
+        .settings {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .settings h3 { margin-bottom: 15px; color: #333; text-align: center; }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .input-group label { font-weight: 600; color: #555; min-width: 80px; }
+
+        .input-group input {
+            width: 100px;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus { outline: none; border-color: #667eea; }
+
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .status.running { background: #d4edda; color: #155724; }
+        .status.paused { background: #fff3cd; color: #856404; }
+        .status.finished {
+            background: #f8d7da;
+            color: #721c24;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .json-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: #2d3748;
+            color: #e2e8f0;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        @media (max-width: 600px) {
+            .timer-display h1 { font-size: 2.5em; }
+            .timer-display .time { font-size: 5em; }
+            .timer-display .time .colon { font-size: 4em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container">
+        <div class="timer-display">
+            <h1>timer</h1>
+            <div class="time">
+                <span class="time-hours">00</span>
+                <span class="colon">:</span>
+                <span class="time-minutes">00</span>
+                <span class="colon">:</span>
+                <span class="time-seconds">00</span>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" id="startBtn">শুরু</button>
+            <button class="btn btn-secondary" id="pauseBtn" disabled>বিরতি</button>
+            <button class="btn btn-secondary" id="resetBtn" disabled>রিসেট</button>
+            <button class="btn btn-secondary" id="saveBtn">JSON সেভ</button>
+        </div>
+
+        <div class="settings">
+            <h3>সেটিংস</h3>
+            <div class="input-group">
+                <label>ঘণ্টা:</label>
+                <input type="number" id="hoursInput" min="0" max="99" value="0">
+            </div>
+            <div class="input-group">
+                <label>মিনিট:</label>
+                <input type="number" id="minutesInput" min="0" max="59" value="0">
+            </div>
+            <div class="input-group">
+                <label>সেকেন্ড:</label>
+                <input type="number" id="secondsInput" min="0" max="59" value="30">
+            </div>
+            <div class="input-group">
+                <label>নাম:</label>
+                <input type="text" id="timerName" placeholder="টাইমার নাম" value="Default">
+            </div>
+        </div>
+
+        <div class="status" id="status">প্রস্তুত</div>
+        <div class="json-display" id="jsonDisplay"></div>
+    </div>
+
+    <script>
+        let timerConfig = {
+            name: "Default", hours: 0, minutes: 0, seconds: 30,
+            isRunning: false, isPaused: false, startTime: null,
+            elapsedTime: 0, savedTimers: []
+        };
+
+        let timerInterval, remainingTime = 0, totalSeconds = 0;
+
+        const timeElements = {
+            hours: document.querySelector('.time-hours'),
+            minutes: document.querySelector('.time-minutes'),
+            seconds: document.querySelector('.time-seconds')
+        };
+        const buttons = {
+            start: document.getElementById('startBtn'),
+            pause: document.getElementById('pauseBtn'),
+            reset: document.getElementById('resetBtn'),
+            save: document.getElementById('saveBtn')
+        };
+        const status = document.getElementById('status');
+        const jsonDisplay = document.getElementById('jsonDisplay');
+        const hoursInput = document.getElementById('hoursInput');
+        const minutesInput = document.getElementById('minutesInput');
+        const secondsInput = document.getElementById('secondsInput');
+        const progressFill = document.getElementById('progressFill');
+
+        function updateJSONData() {
+            timerConfig.hours = parseInt(hoursInput.value) || 0;
+            timerConfig.minutes = parseInt(minutesInput.value) || 0;
+            timerConfig.seconds = parseInt(secondsInput.value) || 0;
+            timerConfig.name = document.getElementById('timerName').value || "Unnamed";
+            timerConfig.isRunning = false;
+            timerConfig.isPaused = false;
+            timerConfig.elapsedTime = remainingTime;
+            jsonDisplay.textContent = JSON.stringify(timerConfig, null, 2);
+        }
+
+        function timeToSeconds(h, m, s) { return h * 3600 + m * 60 + s; }
+
+        function secondsToTime(s) {
+            return {
+                hours: String(Math.floor(s / 3600)).padStart(2, '0'),
+                minutes: String(Math.floor((s % 3600) / 60)).padStart(2, '0'),
+                seconds: String(s % 60).padStart(2, '0')
+            };
+        }
+
+        function updateProgress() {
+            progressFill.style.width = ((totalSeconds - remainingTime) / totalSeconds * 100) + '%';
+        }
+
+        function startTimer() {
+            if (remainingTime <= 0) {
+                updateJSONData();
+                timerConfig.isRunning = true;
+                timerConfig.startTime = Date.now();
+                buttons.start.disabled = true;
+                buttons.pause.disabled = false;
+                buttons.reset.disabled = true;
+                status.textContent = 'চলছে...';
+                status.className = 'status running';
+                status.style.display = 'block';
+
+                timerInterval = setInterval(() => {
+                    remainingTime--;
+                    if (remainingTime <= 0) {
+                        clearInterval(timerInterval);
+                        remainingTime = 0;
+                        timeElements.hours.textContent = '00';
+                        timeElements.minutes.textContent = '00';
+                        timeElements.seconds.textContent = '00';
+                        status.textContent = 'সম্পূর্ণ!';
+                        status.className = 'status finished';
+                        buttons.start.disabled = false;
+                        buttons.pause.disabled = true;
+                        buttons.reset.disabled = false;
+                        timerConfig.isRunning = false;
+                        timerConfig.isPaused = false;
+                        timerConfig.elapsedTime = 0;
+                        updateJSONData();
+                    } else {
+                        const t = secondsToTime(remainingTime);
+                        timeElements.hours.textContent = t.hours;
+                        timeElements.minutes.textContent = t.minutes;
+                        timeElements.seconds.textContent = t.seconds;
+                        updateProgress();
+                    }
+                }, 1000);
+            }
+        }
+
+        function pauseTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerConfig.isPaused = true;
+                timerConfig.elapsedTime = remainingTime;
+                buttons.pause.disabled = true;
+                buttons.start.disabled = false;
+                status.textContent = 'বিরতি';
+                status.className = 'status paused';
+                status.style.display = 'block';
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            totalSeconds = timeToSeconds(
+                parseInt(hoursInput.value) || 0,
+                parseInt(minutesInput.value) || 0,
+                parseInt(secondsInput.value) || 0
+            );
+            remainingTime = totalSeconds;
+            timeElements.hours.textContent = '00';
+            timeElements.minutes.textContent = '00';
+            timeElements.seconds.textContent = '00';
+            progressFill.style.width = '100%';
+            buttons.start.disabled = false;
+            buttons.pause.disabled = true;
+            buttons.reset.disabled = true;
+            status.textContent = 'প্রস্তুত';
+            status.className = 'status';
+            status.style.display = 'none';
+            timerConfig.isRunning = false;
+            timerConfig.isPaused = false;
+            updateJSONData();
+        }
+
+        buttons.start.addEventListener('click', startTimer);
+        buttons.pause.addEventListener('click', pauseTimer);
+        buttons.reset.addEventListener('click', resetTimer);
+        buttons.save.addEventListener('click', () => {
+            updateJSONData();
+            const snapshot = JSON.stringify(timerConfig);
+            if (!timerConfig.savedTimers.includes(snapshot))
+                timerConfig.savedTimers.push(snapshot);
+            updateJSONData();
+            alert('টাইমার কনফিগারেশন সেভ করা হয়েছে!');
+        });
+
+        [hoursInput, minutesInput, secondsInput].forEach(input => {
+            input.addEventListener('change', () => { if (timerConfig.isRunning) updateJSONData(); });
+        });
+
+        resetTimer();
+        updateJSONData();
+    </script>
+</body>
+</html>
