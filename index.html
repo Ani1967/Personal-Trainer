@@ -1,391 +1,412 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>অ্যাডভান্সড টাইমার</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .timer-container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            animation: slideIn 0.5s ease-out;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .timer-display {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .timer-display h1 {
-            font-size: 4em;
-            color: #333;
-            font-weight: 300;
-            letter-spacing: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .timer-display .time {
-            font-size: 8em;
-            font-weight: bold;
-            color: #667eea;
-            display: flex;
-            align-items: baseline;
-            justify-content: center;
-            gap: 15px;
-            font-family: 'Courier New', monospace;
-        }
-
-        .timer-display .time .colon {
-            font-size: 6em;
-            color: #999;
-        }
-
-        @keyframes blink {
-            0%, 49% { opacity: 1; }
-            50%, 100% { opacity: 0.3; }
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary { background: #f0f0f0; color: #333; }
-        .btn-secondary:hover { background: #e0e0e0; }
-
-        .progress-bar {
-            width: 100%;
-            height: 10px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            border-radius: 10px;
-            transition: width 1s linear;
-            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
-        }
-
-        .settings {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-
-        .settings h3 { margin-bottom: 15px; color: #333; text-align: center; }
-
-        .input-group {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .input-group label { font-weight: 600; color: #555; min-width: 80px; }
-
-        .input-group input {
-            width: 100px;
-            padding: 8px 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .input-group input:focus { outline: none; border-color: #667eea; }
-
-        .status {
-            text-align: center;
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .status.running { background: #d4edda; color: #155724; }
-        .status.paused { background: #fff3cd; color: #856404; }
-        .status.finished {
-            background: #f8d7da;
-            color: #721c24;
-            animation: pulse 0.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .json-display {
-            margin-top: 20px;
-            padding: 15px;
-            background: #2d3748;
-            color: #e2e8f0;
-            border-radius: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            max-height: 150px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-
-        @media (max-width: 600px) {
-            .timer-display h1 { font-size: 2.5em; }
-            .timer-display .time { font-size: 5em; }
-            .timer-display .time .colon { font-size: 4em; }
-        }
-    </style>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>লাইফ প্ল্যানার - এআই অ্যাসিস্ট্যান্ট</title>
+ <style>
+ * { margin: 0; padding: 0; box-sizing: border-box; }
+ body {
+   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   min-height: 100vh;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   padding: 20px;
+ }
+ .container { max-width: 1200px; width: 100%; }
+ .main-container {
+   background: rgba(255,255,255,0.95);
+   border-radius: 20px;
+   overflow: hidden;
+   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+   height: 90vh;
+   display: flex;
+   flex-direction: column;
+ }
+ .header {
+   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   color: white;
+   padding: 30px;
+   text-align: center;
+ }
+ .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+ .header p { opacity: 0.9; font-size: 1.2em; }
+ .body-area {
+   display: flex;
+   flex: 1;
+   overflow: hidden;
+ }
+ .sidebar {
+   width: 280px;
+   background: white;
+   padding: 25px;
+   border-right: 1px solid #e0e0e0;
+   overflow-y: auto;
+   flex-shrink: 0;
+ }
+ .sidebar h3 { margin-bottom: 20px; color: #667eea; }
+ .module-grid {
+   display: grid;
+   grid-template-columns: 1fr 1fr;
+   gap: 10px;
+   margin-bottom: 25px;
+ }
+ .module-card {
+   background: #f8f9fa;
+   border-radius: 10px;
+   padding: 15px 10px;
+   cursor: pointer;
+   transition: all 0.3s;
+   border: 2px solid transparent;
+   text-align: center;
+ }
+ .module-card:hover { transform: translateY(-3px); border-color: #667eea; box-shadow: 0 5px 15px rgba(102,126,234,0.2); }
+ .module-card.active { background: linear-gradient(135deg,rgba(102,126,234,0.1),rgba(118,75,162,0.1)); border-color: #667eea; }
+ .module-icon { font-size: 1.8em; margin-bottom: 6px; }
+ .module-title { font-weight: 600; color: #333; font-size: 13px; }
+ .quick-actions h3 { margin-bottom: 12px; color: #333; font-size: 14px; }
+ .quick-buttons { display: flex; flex-direction: column; gap: 8px; }
+ .quick-btn {
+   padding: 9px 14px;
+   background: #f0f0f0;
+   border: none;
+   border-radius: 20px;
+   cursor: pointer;
+   font-size: 13px;
+   text-align: left;
+   transition: all 0.3s;
+ }
+ .quick-btn:hover { background: #667eea; color: white; }
+ .right-panel {
+   flex: 1;
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+   background: #f5f7fa;
+ }
+ .chat-messages {
+   flex: 1;
+   overflow-y: auto;
+   padding: 25px;
+ }
+ .welcome-card {
+   background: white;
+   border-radius: 15px;
+   padding: 30px;
+   text-align: center;
+   margin-bottom: 20px;
+   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+ }
+ .welcome-card h2 { font-size: 1.8em; color: #667eea; margin-bottom: 12px; }
+ .welcome-card p { color: #666; line-height: 1.6; margin-bottom: 10px; }
+ .suggestion-card {
+   background: linear-gradient(135deg,#f093fb 0%,#f5576c 100%);
+   color: white;
+   padding: 18px 20px;
+   border-radius: 12px;
+   margin-top: 15px;
+   text-align: left;
+ }
+ .suggestion-card h4 { margin-bottom: 10px; }
+ .suggestion-card ul { list-style: none; }
+ .suggestion-card li { margin-bottom: 7px; padding-left: 5px; }
+ .goals-panel {
+   background: white;
+   padding: 20px 25px;
+   border-top: 1px solid #e0e0e0;
+ }
+ .goals-header { font-size: 1.1em; font-weight: 600; color: #333; margin-bottom: 15px; }
+ .goals-list { display: flex; gap: 12px; margin-bottom: 15px; flex-wrap: wrap; }
+ .goal-item { background: #f8f9fa; padding: 12px 16px; border-radius: 10px; flex: 1; min-width: 130px; }
+ .goal-item h4 { margin-bottom: 6px; color: #667eea; font-size: 13px; }
+ .goal-bar { height: 7px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+ .goal-progress { height: 100%; background: linear-gradient(90deg,#667eea,#764ba2); border-radius: 4px; transition: width 0.5s; }
+ .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+ .stat-card {
+   background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+   color: white;
+   padding: 12px;
+   border-radius: 10px;
+   text-align: center;
+ }
+ .stat-value { font-size: 1.6em; font-weight: bold; margin-bottom: 4px; }
+ .stat-label { font-size: 11px; opacity: 0.9; }
+ .message { margin-bottom: 16px; display: flex; }
+ .message.user { justify-content: flex-end; }
+ .message.assistant { justify-content: flex-start; }
+ .message-bubble {
+   max-width: 70%;
+   padding: 13px 16px;
+   border-radius: 15px;
+   line-height: 1.5;
+   font-size: 14px;
+ }
+ .message.user .message-bubble {
+   background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+   color: white;
+   border-bottom-right-radius: 4px;
+ }
+ .message.assistant .message-bubble {
+   background: white;
+   color: #333;
+   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+   border-bottom-left-radius: 4px;
+ }
+ .input-area {
+   padding: 16px 25px;
+   background: white;
+   border-top: 1px solid #e0e0e0;
+   display: flex;
+   gap: 12px;
+ }
+ .message-input {
+   flex: 1;
+   padding: 12px 18px;
+   border: 2px solid #e0e0e0;
+   border-radius: 25px;
+   outline: none;
+   font-size: 15px;
+   transition: border-color 0.3s;
+ }
+ .message-input:focus { border-color: #667eea; }
+ .send-btn {
+   padding: 12px 24px;
+   background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+   color: white;
+   border: none;
+   border-radius: 25px;
+   cursor: pointer;
+   font-weight: 600;
+   font-size: 15px;
+   transition: transform 0.2s, box-shadow 0.2s;
+ }
+ .send-btn:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+ .typing { display: flex; gap: 5px; padding: 13px 16px; background: white; border-radius: 15px; width: fit-content; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+ .typing span { width: 8px; height: 8px; background: #667eea; border-radius: 50%; animation: bounce 1.2s infinite; }
+ .typing span:nth-child(2) { animation-delay: 0.2s; }
+ .typing span:nth-child(3) { animation-delay: 0.4s; }
+ @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+ @media (max-width: 768px) {
+   .body-area { flex-direction: column; }
+   .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #e0e0e0; }
+   .stats-grid { grid-template-columns: repeat(2,1fr); }
+ }
+ </style>
 </head>
 <body>
-    <div class="timer-container">
-        <div class="timer-display">
-            <h1>timer</h1>
-            <div class="time">
-                <span class="time-hours">00</span>
-                <span class="colon">:</span>
-                <span class="time-minutes">00</span>
-                <span class="colon">:</span>
-                <span class="time-seconds">00</span>
-            </div>
-        </div>
+<div class="container">
+ <div class="main-container">
+   <div class="header">
+     <h1>🌟 লাইফ প্ল্যানার</h1>
+     <p>আপনার ব্যক্তিগত এআই লাইফ কোচ</p>
+   </div>
 
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
+   <div class="body-area">
+     <!-- Sidebar -->
+     <div class="sidebar">
+       <h3>📋 মডিউলসমূহ</h3>
+       <div class="module-grid">
+         <div class="module-card active" onclick="switchModule('overview', this)">
+           <div class="module-icon">📊</div>
+           <div class="module-title">ওভারভিউ</div>
+         </div>
+         <div class="module-card" onclick="switchModule('goals', this)">
+           <div class="module-icon">🎯</div>
+           <div class="module-title">লক্ষ্যসমূহ</div>
+         </div>
+         <div class="module-card" onclick="switchModule('timeline', this)">
+           <div class="module-icon">📅</div>
+           <div class="module-title">টাইমলাইন</div>
+         </div>
+         <div class="module-card" onclick="switchModule('tracker', this)">
+           <div class="module-icon">📈</div>
+           <div class="module-title">অগ্রগতি</div>
+         </div>
+         <div class="module-card" onclick="switchModule('suggestions', this)">
+           <div class="module-icon">💡</div>
+           <div class="module-title">পরামর্শ</div>
+         </div>
+         <div class="module-card" onclick="switchModule('habits', this)">
+           <div class="module-icon">✅</div>
+           <div class="module-title">অভ্যাস</div>
+         </div>
+       </div>
 
-        <div class="controls">
-            <button class="btn btn-primary" id="startBtn">শুরু</button>
-            <button class="btn btn-secondary" id="pauseBtn" disabled>বিরতি</button>
-            <button class="btn btn-secondary" id="resetBtn" disabled>রিসেট</button>
-            <button class="btn btn-secondary" id="saveBtn">JSON সেভ</button>
-        </div>
+       <div class="quick-actions">
+         <h3>⚡ দ্রুত কাজ</h3>
+         <div class="quick-buttons">
+           <button class="quick-btn" onclick="quickAction('লক্ষ্য যোগ করুন')">🎯 লক্ষ্য যোগ করুন</button>
+           <button class="quick-btn" onclick="quickAction('অগ্রগতি দেখুন')">📈 অগ্রগতি দেখুন</button>
+           <button class="quick-btn" onclick="quickAction('এআই পরামর্শ দিন')">💡 এআই পরামর্শ</button>
+           <button class="quick-btn" onclick="quickAction('আজকের পরিকল্পনা')">📅 আজকের পরিকল্পনা</button>
+           <button class="quick-btn" onclick="quickAction('অনুপ্রেরণা দিন')">🔥 অনুপ্রেরণা</button>
+           <button class="quick-btn" onclick="quickAction('সাপ্তাহিক রিভিউ')">📋 সাপ্তাহিক রিভিউ</button>
+         </div>
+       </div>
+     </div>
 
-        <div class="settings">
-            <h3>সেটিংস</h3>
-            <div class="input-group">
-                <label>ঘণ্টা:</label>
-                <input type="number" id="hoursInput" min="0" max="99" value="0">
-            </div>
-            <div class="input-group">
-                <label>মিনিট:</label>
-                <input type="number" id="minutesInput" min="0" max="59" value="0">
-            </div>
-            <div class="input-group">
-                <label>সেকেন্ড:</label>
-                <input type="number" id="secondsInput" min="0" max="59" value="30">
-            </div>
-            <div class="input-group">
-                <label>নাম:</label>
-                <input type="text" id="timerName" placeholder="টাইমার নাম" value="Default">
-            </div>
-        </div>
+     <!-- Right panel -->
+     <div class="right-panel">
+       <div class="chat-messages" id="chatMessages">
+         <div class="welcome-card">
+           <h2>স্বাগতম! 👋</h2>
+           <p>আমি তোমার ব্যক্তিগত লাইফ কোচ। তোমাকে জীবনের লক্ষ্য অর্জনে সাহায্য করতে এসেছি।</p>
+           <p>শুরু করতে "হ্যালো" বলুন অথবা বাম দিক থেকে যেকোনো মডিউল বেছে নিন।</p>
+           <div class="suggestion-card">
+             <h4>✨ আজকের পরামর্শ</h4>
+             <ul>
+               <li>✔ প্রতিটি দিন একটি নির্দিষ্ট লক্ষ্য নিয়ে শুরু করুন</li>
+               <li>✔ সপ্তাহে একবার অগ্রগতি পর্যালোচনা করুন</li>
+               <li>✔ ছোট ছোট জয় উদযাপন করুন</li>
+               <li>✔ বাধা আসলে হাল ছেড়ে দেবেন না</li>
+             </ul>
+           </div>
+         </div>
+       </div>
 
-        <div class="status" id="status">প্রস্তুত</div>
-        <div class="json-display" id="jsonDisplay"></div>
-    </div>
+       <div class="goals-panel">
+         <div class="goals-header">🎯 বর্তমান লক্ষ্যসমূহ</div>
+         <div class="goals-list">
+           <div class="goal-item"><h4>🏃 ফিটনেস</h4><div class="goal-bar"><div class="goal-progress" style="width:75%"></div></div></div>
+           <div class="goal-item"><h4>💼 ক্যারিয়ার</h4><div class="goal-bar"><div class="goal-progress" style="width:60%"></div></div></div>
+           <div class="goal-item"><h4>📚 শিক্ষা</h4><div class="goal-bar"><div class="goal-progress" style="width:40%"></div></div></div>
+           <div class="goal-item"><h4>💰 ফিন্যান্স</h4><div class="goal-bar"><div class="goal-progress" style="width:80%"></div></div></div>
+         </div>
+         <div class="stats-grid">
+           <div class="stat-card"><div class="stat-value">3/4</div><div class="stat-label">চলমান লক্ষ্য</div></div>
+           <div class="stat-card"><div class="stat-value">85%</div><div class="stat-label">সামগ্রিক অগ্রগতি</div></div>
+           <div class="stat-card"><div class="stat-value">12 দিন</div><div class="stat-label">পরবর্তী মাইলফলক</div></div>
+           <div class="stat-card"><div class="stat-value">✓</div><div class="stat-label">সময়মতো</div></div>
+         </div>
+       </div>
 
-    <script>
-        let timerConfig = {
-            name: "Default", hours: 0, minutes: 0, seconds: 30,
-            isRunning: false, isPaused: false, startTime: null,
-            elapsedTime: 0, savedTimers: []
-        };
+       <div class="input-area">
+         <input type="text" class="message-input" id="messageInput"
+           placeholder="তোমার মেসেজ লিখুন..."
+           onkeypress="if(event.key==='Enter') sendMessage()">
+         <button class="send-btn" onclick="sendMessage()">পাঠান ➤</button>
+       </div>
+     </div>
+   </div>
+ </div>
+</div>
 
-        let timerInterval, remainingTime = 0, totalSeconds = 0;
+<script>
+class LifePlanner {
+  constructor() {
+    this.goals = this.loadGoals();
+    this.currentModule = 'overview';
+  }
+  loadGoals() {
+    const saved = localStorage.getItem('lifeGoals');
+    return saved ? JSON.parse(saved) : {
+      fitness:   { title: 'শারীরিক সুস্থতা', progress: 75, target: '30 দিন ব্যায়াম' },
+      career:    { title: 'ক্যারিয়ার উন্নতি', progress: 60, target: 'প্রমোশন' },
+      education: { title: 'দক্ষতা বিকাশ',    progress: 40, target: 'কোর্সের ৫০% শেষ' },
+      finance:   { title: 'আর্থিক পরিকল্পনা', progress: 80, target: 'বিনিয়োগ শুরু' }
+    };
+  }
+  saveGoals() { localStorage.setItem('lifeGoals', JSON.stringify(this.goals)); }
 
-        const timeElements = {
-            hours: document.querySelector('.time-hours'),
-            minutes: document.querySelector('.time-minutes'),
-            seconds: document.querySelector('.time-seconds')
-        };
-        const buttons = {
-            start: document.getElementById('startBtn'),
-            pause: document.getElementById('pauseBtn'),
-            reset: document.getElementById('resetBtn'),
-            save: document.getElementById('saveBtn')
-        };
-        const status = document.getElementById('status');
-        const jsonDisplay = document.getElementById('jsonDisplay');
-        const hoursInput = document.getElementById('hoursInput');
-        const minutesInput = document.getElementById('minutesInput');
-        const secondsInput = document.getElementById('secondsInput');
-        const progressFill = document.getElementById('progressFill');
+  getResponse(message) {
+    const m = message.toLowerCase();
+    const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+    if (m.includes('হ্যালো') || m.includes('হাই') || m.includes('hello') || m.includes('hi'))
+      return pick(["হ্যালো! আপনার দিনটি কেমন চলছে? 😊","স্বাগতম! আজ আমি কীভাবে আপনাকে সাহায্য করতে পারি?","হ্যালো! চলুন আজ একসাথে কাজ করি। 💪"]);
+    if (m.includes('লক্ষ্য') || m.includes('goal'))
+      return pick(["চমৎকার! আপনার লক্ষ্য সম্পর্কে আরও বলুন। কত দিনের মধ্যে অর্জন করতে চান?","ভালো ব্যাপার! SMART লক্ষ্য নির্ধারণ করুন — Specific, Measurable, Achievable, Relevant, Time-bound।","আমি শুনতে আগ্রহী। আপনার পরিকল্পনা কী?"]);
+    if (m.includes('অনুপ্রেরণা') || m.includes('motivation') || m.includes('অনুপ্রাণিত'))
+      return pick(["আপনি সক্ষম! বিশ্বাস রাখুন নিজেকে। 🔥","প্রতিটি দিন একটি নতুন সুযোগ। ছোট পদক্ষেপও বড় পরিবর্তন আনে।","আপনি পারবেন! শুধু শুরু করতে হবে। সাফল্য আসবেই। ⭐"]);
+    if (m.includes('পরামর্শ') || m.includes('advice') || m.includes('সাহায্য'))
+      return pick(["একটি নির্দিষ্ট লক্ষ্য নির্ধারণ করুন এবং প্রতিদিন অগ্রগতি ট্র্যাক করুন।","সকালে ১৫ মিনিট পরিকল্পনায় ব্যয় করুন — সারাদিন অনেক সহজ হয়ে যাবে।","বড় লক্ষ্যকে ছোট ছোট কাজে ভাগ করুন। প্রতিটি সম্পন্ন কাজ উদযাপন করুন। 🎉"]);
+    if (m.includes('অগ্রগতি') || m.includes('progress'))
+      return pick(["আপনার সামগ্রিক অগ্রগতি ৮৫%! এটি চমৎকার। চালিয়ে যান! 🚀","ফিটনেস ৭৫%, ক্যারিয়ার ৬০%, শিক্ষা ৪০%, ফিন্যান্স ৮০% — সব মিলিয়ে খুব ভালো।","আপনি সঠিক পথে আছেন। যত বেশি কাজ করবেন তত ভালো ফলাফল পাবেন।"]);
+    if (m.includes('পরিকল্পনা') || m.includes('plan') || m.includes('আজ'))
+      return pick(["আজকের জন্য ৩টি প্রধান কাজ বেছে নিন এবং সেগুলো শেষ করুন।","সকালে ব্যায়াম, দুপুরে শেখা, বিকেলে কাজ — এই রুটিন অনুসরণ করুন।","আজ একটি নতুন দক্ষতা শেখার চেষ্টা করুন। ১ ঘণ্টাই যথেষ্ট।"]);
+    if (m.includes('ধন্যবাদ') || m.includes('thank'))
+      return "আপনাকে স্বাগত! আমি সবসময় আপনার পাশে আছি। 😊";
+    return pick(["এটি বেশ আকর্ষণীয়। আরও বিস্তারিত বলুন।","বুঝতে পেরেছি। আপনার লক্ষ্য অর্জনে আমি সবসময় পাশে আছি।","মনোযোগ দিয়ে শুনছি। কীভাবে সাহায্য করতে পারি?"]);
+  }
 
-        function updateJSONData() {
-            timerConfig.hours = parseInt(hoursInput.value) || 0;
-            timerConfig.minutes = parseInt(minutesInput.value) || 0;
-            timerConfig.seconds = parseInt(secondsInput.value) || 0;
-            timerConfig.name = document.getElementById('timerName').value || "Unnamed";
-            timerConfig.isRunning = false;
-            timerConfig.isPaused = false;
-            timerConfig.elapsedTime = remainingTime;
-            jsonDisplay.textContent = JSON.stringify(timerConfig, null, 2);
-        }
+  getSuggestion() {
+    const s = ["আজ ১৫ মিনিট মেডিটেশন করুন 🧘","একটি নতুন দক্ষতা শেখা শুরু করুন 📚","বন্ধু বা পরিবারের সাথে সময় কাটান ❤️","আউটডোর হাঁটায় যান — শরীর ও মন দুটোই ভালো থাকবে 🌿","আগামী সপ্তাহের পরিকল্পনা এখনই করুন 📅","একটি বই পড়ুন বা পডকাস্ট শুনুন 🎧","পানি বেশি পান করুন এবং স্বাস্থ্যকর খাবার খান 🥗"];
+    return s[Math.floor(Math.random() * s.length)];
+  }
+}
 
-        function timeToSeconds(h, m, s) { return h * 3600 + m * 60 + s; }
+const planner = new LifePlanner();
 
-        function secondsToTime(s) {
-            return {
-                hours: String(Math.floor(s / 3600)).padStart(2, '0'),
-                minutes: String(Math.floor((s % 3600) / 60)).padStart(2, '0'),
-                seconds: String(s % 60).padStart(2, '0')
-            };
-        }
+const moduleMessages = {
+  overview:     ["ওভারভিউতে আপনার সম্পূর্ণ জীবন পরিকল্পনা দেখতে পাবেন — লক্ষ্য, অগ্রগতি এবং পরামর্শ।","এটি আপনার মূল ড্যাশবোর্ড। এখান থেকে সব কিছু নিয়ন্ত্রণ করুন।"],
+  goals:        ["লক্ষ্য মডিউলে আপনার ফিটনেস, ক্যারিয়ার, শিক্ষা ও আর্থিক লক্ষ্য ট্র্যাক করুন।","নতুন লক্ষ্য যোগ করতে চান? বলুন কী ধরনের লক্ষ্য নির্ধারণ করতে চাইছেন।"],
+  timeline:     ["টাইমলাইনে দেখুন কোন কাজ কখন শেষ করতে হবে। সময়মতো কাজ শেষ করা সাফল্যের চাবিকাঠি।","আপনার পরবর্তী মাইলফলক ১২ দিন পরে। প্রস্তুত তো?"],
+  tracker:      ["অগ্রগতি ট্র্যাকারে দেখুন আপনি কতটুকু এগিয়েছেন। ধারাবাহিকতাই সাফল্যের রহস্য।","আপনার সামগ্রিক অগ্রগতি ৮৫%! আরও একটু চেষ্টা করলেই লক্ষ্য পূরণ হবে।"],
+  suggestions:  ["আজকের এআই পরামর্শ: " + planner.getSuggestion(),"আপনার লক্ষ্যের ভিত্তিতে ব্যক্তিগত পরামর্শ: ছোট ছোট পদক্ষেপে এগিয়ে যান।"],
+  habits:       ["অভ্যাস মডিউলে আপনার দৈনন্দিন ভালো অভ্যাসগুলো ট্র্যাক করুন।","প্রতিদিন একটি ছোট ভালো অভ্যাস চর্চা করুন। ২১ দিনেই অভ্যাস তৈরি হয়ে যাবে! ✅"]
+};
 
-        function updateProgress() {
-            progressFill.style.width = ((totalSeconds - remainingTime) / totalSeconds * 100) + '%';
-        }
+function switchModule(module, el) {
+  document.querySelectorAll('.module-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  planner.currentModule = module;
+  const msgs = moduleMessages[module];
+  addMessage('assistant', msgs[Math.floor(Math.random() * msgs.length)]);
+}
 
-        function startTimer() {
-            if (remainingTime <= 0) {
-                updateJSONData();
-                timerConfig.isRunning = true;
-                timerConfig.startTime = Date.now();
-                buttons.start.disabled = true;
-                buttons.pause.disabled = false;
-                buttons.reset.disabled = true;
-                status.textContent = 'চলছে...';
-                status.className = 'status running';
-                status.style.display = 'block';
+function quickAction(action) {
+  addMessage('user', action);
+  const responses = {
+    'লক্ষ্য যোগ করুন': 'চমৎকার! কী ধরনের লক্ষ্য নির্ধারণ করতে চান? ফিটনেস, ক্যারিয়ার, শিক্ষা নাকি অন্য কিছু?',
+    'অগ্রগতি দেখুন': 'আপনার বর্তমান অগ্রগতি: ফিটনেস ৭৫%, ক্যারিয়ার ৬০%, শিক্ষা ৪০%, ফিন্যান্স ৮০%। সামগ্রিক: ৮৫%! 🚀',
+    'এআই পরামর্শ দিন': '💡 আজকের পরামর্শ: ' + planner.getSuggestion(),
+    'আজকের পরিকল্পনা': '📅 আজকের জন্য ৩টি কাজ করুন:\n১. ৩০ মিনিট ব্যায়াম\n২. ১ ঘণ্টা নতুন কিছু শেখা\n৩. কাজের তালিকা আপডেট করুন',
+    'অনুপ্রেরণা দিন': '🔥 "সাফল্য আসে তাদের কাছে যারা হাল ছাড়ে না।" আপনি পারবেন! প্রতিটি দিন একটি নতুন সুযোগ।',
+    'সাপ্তাহিক রিভিউ': '📋 এই সপ্তাহে আপনি ভালো করেছেন! লক্ষ্যের দিকে ৮৫% এগিয়েছেন। আগামী সপ্তাহে আরও একটু বেশি চেষ্টা করুন।'
+  };
+  setTimeout(() => addMessage('assistant', responses[action] || planner.getResponse(action)), 800);
+}
 
-                timerInterval = setInterval(() => {
-                    remainingTime--;
-                    if (remainingTime <= 0) {
-                        clearInterval(timerInterval);
-                        remainingTime = 0;
-                        timeElements.hours.textContent = '00';
-                        timeElements.minutes.textContent = '00';
-                        timeElements.seconds.textContent = '00';
-                        status.textContent = 'সম্পূর্ণ!';
-                        status.className = 'status finished';
-                        buttons.start.disabled = false;
-                        buttons.pause.disabled = true;
-                        buttons.reset.disabled = false;
-                        timerConfig.isRunning = false;
-                        timerConfig.isPaused = false;
-                        timerConfig.elapsedTime = 0;
-                        updateJSONData();
-                    } else {
-                        const t = secondsToTime(remainingTime);
-                        timeElements.hours.textContent = t.hours;
-                        timeElements.minutes.textContent = t.minutes;
-                        timeElements.seconds.textContent = t.seconds;
-                        updateProgress();
-                    }
-                }, 1000);
-            }
-        }
+function addMessage(sender, text) {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `message ${sender}`;
+  div.innerHTML = `<div class="message-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
 
-        function pauseTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerConfig.isPaused = true;
-                timerConfig.elapsedTime = remainingTime;
-                buttons.pause.disabled = true;
-                buttons.start.disabled = false;
-                status.textContent = 'বিরতি';
-                status.className = 'status paused';
-                status.style.display = 'block';
-            }
-        }
+function showTyping() {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'message assistant';
+  div.id = 'typingIndicator';
+  div.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
 
-        function resetTimer() {
-            clearInterval(timerInterval);
-            totalSeconds = timeToSeconds(
-                parseInt(hoursInput.value) || 0,
-                parseInt(minutesInput.value) || 0,
-                parseInt(secondsInput.value) || 0
-            );
-            remainingTime = totalSeconds;
-            timeElements.hours.textContent = '00';
-            timeElements.minutes.textContent = '00';
-            timeElements.seconds.textContent = '00';
-            progressFill.style.width = '100%';
-            buttons.start.disabled = false;
-            buttons.pause.disabled = true;
-            buttons.reset.disabled = true;
-            status.textContent = 'প্রস্তুত';
-            status.className = 'status';
-            status.style.display = 'none';
-            timerConfig.isRunning = false;
-            timerConfig.isPaused = false;
-            updateJSONData();
-        }
+function hideTyping() {
+  const t = document.getElementById('typingIndicator');
+  if (t) t.remove();
+}
 
-        buttons.start.addEventListener('click', startTimer);
-        buttons.pause.addEventListener('click', pauseTimer);
-        buttons.reset.addEventListener('click', resetTimer);
-        buttons.save.addEventListener('click', () => {
-            updateJSONData();
-            const snapshot = JSON.stringify(timerConfig);
-            if (!timerConfig.savedTimers.includes(snapshot))
-                timerConfig.savedTimers.push(snapshot);
-            updateJSONData();
-            alert('টাইমার কনফিগারেশন সেভ করা হয়েছে!');
-        });
+function sendMessage() {
+  const input = document.getElementById('messageInput');
+  const message = input.value.trim();
+  if (!message) return;
+  addMessage('user', message);
+  input.value = '';
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    addMessage('assistant', planner.getResponse(message));
+  }, 800 + Math.random() * 700);
+}
 
-        [hoursInput, minutesInput, secondsInput].forEach(input => {
-            input.addEventListener('change', () => { if (timerConfig.isRunning) updateJSONData(); });
-        });
-
-        resetTimer();
-        updateJSONData();
-    </script>
+// Initial greeting
+setTimeout(() => addMessage('assistant', 'আমি আপনার লাইফ কোচ। আজ আমি কীভাবে আপনাকে সাহায্য করতে পারি? 😊'), 500);
+</script>
 </body>
 </html>
