@@ -438,38 +438,101 @@ class LifePlanner {
   }
 
   buildIncomeResponse(m, profile) {
-    const assets = profile ? profile.assets : '';
-    const target = profile ? profile.incomeTarget : '$2000';
+    const assets = profile ? profile.assets.toLowerCase() : '';
+    const profileTarget = profile ? profile.incomeTarget : '';
 
-    // Detect specific platforms mentioned
-    const hasEducreation = m.includes('educreation') || assets.includes('educreation');
-    const hasBooks       = m.includes('book') || m.includes('বই') || assets.includes('book');
-    const hasStudyFlow   = m.includes('study-flow') || assets.includes('study-flow');
-    const hasMeesho      = m.includes('meesho') || assets.includes('meesho');
-    const hasAmazon      = m.includes('amazon') || assets.includes('amazon');
-    const hasSuperprof   = m.includes('superprof') || assets.includes('superprof');
-    const hasUrbanpro    = m.includes('urbanpro') || assets.includes('urbanpro');
-    const hasVani        = m.includes('vani') || assets.includes('vani');
+    // Extract numeric target from message (e.g. $2500, 2500, ₹1,50,000)
+    const numMatch = m.match(/\$?\s*(\d[\d,]*)\s*(?:per\s*month|\/month|month|মাস)?/);
+    let targetUSD = 2000;
+    if (numMatch) {
+      const raw = parseInt(numMatch[1].replace(/,/g, ''));
+      // If it looks like rupees (>5000), convert; else treat as USD
+      targetUSD = raw > 5000 ? Math.round(raw / 83) : raw;
+    } else if (profileTarget) {
+      const pm = profileTarget.match(/\$?\s*(\d[\d,]*)/);
+      if (pm) {
+        const raw = parseInt(pm[1].replace(/,/g, ''));
+        targetUSD = raw > 5000 ? Math.round(raw / 83) : raw;
+      }
+    }
 
-    const anySite = hasEducreation || hasStudyFlow || hasVani || hasBooks || hasMeesho || hasAmazon || hasSuperprof || hasUrbanpro;
+    const targetINR = Math.round(targetUSD * 83);
+    const fmt = n => '₹' + n.toLocaleString('en-IN');
 
-    if (anySite || m.includes('$2000') || m.includes('2000') || m.includes('plan')) {
-      return `💰 আপনার $2000/মাস পরিকল্পনা:\n\n` +
-        `🏫 শিক্ষাদান (Superprof/UrbanPro): ১০ ছাত্র × ২ ঘণ্টা/সপ্তাহ × ₹৫০০ = ₹৪০,০০০\n` +
-        `📚 EduCreation কোর্স: ৩০ সাবস্ক্রাইবার × ₹৯৯৯ = ₹৩০,০০০\n` +
-        `🌐 study-flow.in: বিজ্ঞাপন + প্রিমিয়াম নোটস = ₹২০,০০০\n` +
-        `📖 বই বিক্রি (Amazon KDP): ৮০ কপি × ₹২৯৯ = ₹২৪,০০০\n` +
-        `🛒 Meesho/Amazon: ৫০ অর্ডার × ₹৬০০ মার্জিন = ₹৩০,০০০\n` +
-        `📱 Vani Sales (WhatsApp ফানেল): সব প্ল্যাটফর্মে ট্রাফিক = ₹২৫,০০০\n\n` +
-        `✅ মোট: ₹১,৬৯,০০০ ≈ $2,030/মাস\n\n` +
-        `🎯 প্রথম ৩০ দিনে করুন:\n` +
+    // Scale each stream proportionally from base $2000 plan
+    const scale = targetUSD / 2000;
+    const teaching   = Math.round(40000 * scale);
+    const courses    = Math.round(30000 * scale);
+    const website    = Math.round(20000 * scale);
+    const books      = Math.round(24000 * scale);
+    const ecommerce  = Math.round(30000 * scale);
+    const whatsapp   = Math.round(25000 * scale);
+    const total      = teaching + courses + website + books + ecommerce + whatsapp;
+
+    // Detect if asking for 30-day or day-by-day plan
+    const wants30Day = m.includes('30') || m.includes('day') || m.includes('দিন') ||
+                       m.includes('step') || m.includes('weekly') || m.includes('week') ||
+                       m.includes('detailed') || m.includes('বিস্তারিত') || m.includes('budget') ||
+                       m.includes('invest') || m.includes('cost') || m.includes('খরচ');
+
+    const teachStudents = Math.ceil(10 * scale);
+    const courseStudents = Math.ceil(30 * scale);
+    const bookCopies = Math.ceil(80 * scale);
+    const meeshoOrders = Math.ceil(50 * scale);
+
+    let response = `💰 আপনার $${targetUSD}/মাস পরিকল্পনা:\n\n` +
+      `🏫 শিক্ষাদান (Superprof/UrbanPro): ${teachStudents} ছাত্র × ₹৫০০/ঘণ্টা = ${fmt(teaching)}\n` +
+      `📚 EduCreation কোর্স: ${courseStudents} সাবস্ক্রাইবার × ₹৯৯৯ = ${fmt(courses)}\n` +
+      `🌐 study-flow.in: বিজ্ঞাপন + প্রিমিয়াম নোটস = ${fmt(website)}\n` +
+      `📖 বই বিক্রি (Amazon KDP): ${bookCopies} কপি × ₹২৯৯ = ${fmt(books)}\n` +
+      `🛒 Meesho/Amazon: ${meeshoOrders} অর্ডার × ₹৬০০ মার্জিন = ${fmt(ecommerce)}\n` +
+      `📱 Vani Sales (WhatsApp ফানেল): ট্রাফিক সব চ্যানেলে = ${fmt(whatsapp)}\n\n` +
+      `✅ মোট: ${fmt(total)} ≈ $${targetUSD}/মাস\n`;
+
+    if (wants30Day) {
+      response += `\n📅 ৩০ দিনের পরিকল্পনা (বাজেট: ₹১০,০০০):\n\n` +
+        `সপ্তাহ ১ (দিন ১–৭) | খরচ: ₹৯৯৯\n` +
+        `• দিন ১: Superprof + UrbanPro প্রোফাইল পূর্ণ করুন (ছবি, ভিডিও, বিষয়)\n` +
+        `• দিন ২: দুটি বই Amazon KDP-তে আপলোড করুন (বিনামূল্যে)\n` +
+        `• দিন ৩: WhatsApp Business সেটআপ করুন — ক্যাটালগ ও কুইক রিপ্লাই\n` +
+        `• দিন ৪: Canva Pro নিন (₹৯৯৯) — কোর্স ব্যানার ও থাম্বনেইল তৈরি\n` +
+        `• দিন ৫–৬: EduCreation-এ প্রথম কোর্স রেকর্ড করুন (ফোনে, ৫ মডিউল)\n` +
+        `• দিন ৭: কোর্স পাবলিশ করুন ₹৪৯৯ দামে\n\n` +
+        `সপ্তাহ ২ (দিন ৮–১৪) | খরচ: ₹৪,০০০\n` +
+        `• দিন ৮–৯: Meesho-তে ২০টি পণ্য লিস্ট করুন (স্টেশনারি, হোম আইটেম)\n` +
+        `• দিন ১০: ৩টি রিলস বানান — আপনার শিক্ষাদান প্রমোট করুন\n` +
+        `• দিন ১১: ₹১,০০০ Facebook Ad — ছাত্র টার্গেট (বয়স ১৬–২৫)\n` +
+        `• দিন ১২: WhatsApp ব্রডকাস্ট — সব কন্টাক্টে কোর্স ও বই লিংক\n` +
+        `• দিন ১৩: ₹১,০০০ Instagram Ad — EduCreation কোর্স প্রমোট\n` +
+        `• দিন ১৪: study-flow.in-এ ৫টি প্রিমিয়াম নোটস যোগ করুন (₹৯৯–১৪৯)\n\n` +
+        `সপ্তাহ ৩ (দিন ১৫–২১) | খরচ: ₹৩,০০০\n` +
+        `• দিন ১৫: Google Ads শুরু করুন ₹১০০/দিন — "online tuition" কীওয়ার্ড\n` +
+        `• দিন ১৬–১৭: Superprof/UrbanPro-এর প্রতিটি ইনকোয়ারি ২ ঘণ্টার মধ্যে রিপ্লাই\n` +
+        `• দিন ১৮: Google AdSense-এ apply করুন study-flow.in-এর জন্য\n` +
+        `• দিন ১৯: ₹১,০০০ Facebook Ad আবার চালান — সেরা পারফর্মিং Ad\n` +
+        `• দিন ২০: দ্বিতীয় WhatsApp ব্রডকাস্ট — রিভিউ/টেস্টিমোনিয়াল সহ\n` +
+        `• দিন ২১: কোন চ্যানেল সবচেয়ে ভালো কাজ করছে সেটা বিশ্লেষণ করুন\n\n` +
+        `সপ্তাহ ৪ (দিন ২২–৩০) | খরচ: বাকি বাজেট\n` +
+        `• দিন ২২–২৩: সেরা চ্যানেলে বেশি বিনিয়োগ করুন\n` +
+        `• দিন ২৪: দ্বিতীয় EduCreation কোর্স তৈরি করুন (ছোট, ₹২৯৯)\n` +
+        `• দিন ২৫: Meesho-তে আরও ১০টি পণ্য যোগ করুন\n` +
+        `• দিন ২৬–২৭: প্রতিটি ছাত্র/ক্রেতার কাছ থেকে রিভিউ চান\n` +
+        `• দিন ২৮–৩০: আয় হিসাব করুন। মাস ২-এর পরিকল্পনা করুন\n\n` +
+        `📊 বাস্তবসম্মত আয় প্রত্যাশা:\n` +
+        `• মাস ১: ₹২০,০০০–৩০,০০০\n` +
+        `• মাস ২: ₹৫০,০০০–৭০,০০০\n` +
+        `• মাস ৩–৪: ₹১,০০,০০০–১,৩০,০০০\n` +
+        `• মাস ৫+: ${fmt(total)} ≈ $${targetUSD} ✅`;
+    } else {
+      response += `\n🎯 প্রথম ৩০ দিনে করুন:\n` +
         `১. Superprof-এ ৫ জন ছাত্র নিন\n` +
         `২. Meesho-তে ২০টি পণ্য লিস্ট করুন\n` +
         `৩. বই Amazon KDP-তে আপলোড করুন\n` +
-        `৪. EduCreation-এ একটি পেইড কোর্স তৈরি করুন`;
+        `৪. EduCreation-এ একটি পেইড কোর্স তৈরি করুন\n\n` +
+        `💡 বিস্তারিত দিন-ধরে পরিকল্পনার জন্য জিজ্ঞেস করুন: "৩০ দিনের পরিকল্পনা দাও"`;
     }
 
-    return `💡 আপনার আয়ের সুযোগ অনেক আছে। আপনার কাছে কী কী আছে সেটা বলুন অথবা "প্রোফাইল সেট করুন" ব্যবহার করুন — আমি সম্পূর্ণ পরিকল্পনা দেব।`;
+    return response;
   }
 
   getProfile() {
