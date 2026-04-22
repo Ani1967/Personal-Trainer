@@ -443,7 +443,7 @@ let isRecording = false;
 
 if (SpeechRecognition) {
   recognition = new SpeechRecognition();
-  recognition.continuous = false;
+  recognition.continuous = true;
   recognition.interimResults = true;
   recognition.lang = 'bn-BD'; // Bengali; falls back to English if unavailable
 
@@ -452,22 +452,27 @@ if (SpeechRecognition) {
     document.getElementById('micBtn').classList.add('recording');
     document.getElementById('micBtn').textContent = '⏹';
     document.getElementById('voiceHint').classList.add('show');
-    document.getElementById('messageInput').placeholder = '🎙️ শুনছি...';
+    document.getElementById('messageInput').placeholder = '🎙️ শুনছি... (থামতে ⏹ চাপুন)';
   };
 
   recognition.onresult = (e) => {
-    const transcript = Array.from(e.results)
-      .map(r => r[0].transcript).join('');
-    document.getElementById('messageInput').value = transcript;
+    let final = '';
+    let interim = '';
+    for (let i = 0; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript + ' ';
+      else interim += e.results[i][0].transcript;
+    }
+    document.getElementById('messageInput').value = (final + interim).trim();
   };
 
   recognition.onend = () => {
-    isRecording = false;
+    // Restart automatically if user hasn't manually stopped
+    if (isRecording) { try { recognition.start(); } catch(e) {} return; }
     document.getElementById('micBtn').classList.remove('recording');
     document.getElementById('micBtn').textContent = '🎤';
     document.getElementById('voiceHint').classList.remove('show');
     document.getElementById('messageInput').placeholder = 'তোমার মেসেজ লিখুন অথবা মাইক্রোফোন ব্যবহার করুন...';
-    // Auto-send if something was captured
+    // Send only when user manually stops
     if (document.getElementById('messageInput').value.trim()) sendMessage();
   };
 
@@ -489,8 +494,12 @@ if (SpeechRecognition) {
 
 function toggleVoice() {
   if (!recognition) { addMessage('assistant', '⚠️ আপনার ব্রাউজার ভয়েস ইনপুট সমর্থন করে না। Chrome বা Edge ব্যবহার করুন।'); return; }
-  if (isRecording) { recognition.stop(); }
-  else { recognition.start(); }
+  if (isRecording) {
+    isRecording = false; // flag first so onend knows it's a manual stop
+    recognition.stop();
+  } else {
+    recognition.start();
+  }
 }
 
 // Initial greeting
