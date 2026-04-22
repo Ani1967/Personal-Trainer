@@ -403,7 +403,8 @@ class LifePlanner {
         m.includes('meesho') || m.includes('amazon') || m.includes('superprof') || m.includes('urbanpro') ||
         m.includes('course') || m.includes('কোর্স') || m.includes('teach') || m.includes('পড়াই') ||
         m.includes('book') || m.includes('বই') || m.includes('website') || m.includes('study') ||
-        m.includes('whatsapp') || m.includes('vani') || m.includes('educreation') || m.includes('study-flow')) {
+        m.includes('whatsapp') || m.includes('vani') || m.includes('educreation') || m.includes('study-flow') ||
+        m.includes('sat') || m.includes('reinvest') || m.includes('invest') || m.includes('runway') || m.includes('month')) {
       return this.buildIncomeResponse(m, profile);
     }
 
@@ -441,12 +442,11 @@ class LifePlanner {
     const assets = profile ? profile.assets.toLowerCase() : '';
     const profileTarget = profile ? profile.incomeTarget : '';
 
-    // Extract numeric target from message (e.g. $2500, 2500, ₹1,50,000)
+    // Extract numeric target from message
     const numMatch = m.match(/\$?\s*(\d[\d,]*)\s*(?:per\s*month|\/month|month|মাস)?/);
     let targetUSD = 2000;
     if (numMatch) {
       const raw = parseInt(numMatch[1].replace(/,/g, ''));
-      // If it looks like rupees (>5000), convert; else treat as USD
       targetUSD = raw > 5000 ? Math.round(raw / 83) : raw;
     } else if (profileTarget) {
       const pm = profileTarget.match(/\$?\s*(\d[\d,]*)/);
@@ -455,78 +455,101 @@ class LifePlanner {
         targetUSD = raw > 5000 ? Math.round(raw / 83) : raw;
       }
     }
+    // Sanity clamp
+    if (targetUSD < 100) targetUSD = 2000;
 
-    const targetINR = Math.round(targetUSD * 83);
-    const fmt = n => '₹' + n.toLocaleString('en-IN');
+    const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+    const hasSAT = m.includes('sat') || assets.includes('sat');
+    const hasReinvest = m.includes('reinvest') || m.includes('reinvesting') || m.includes('invest') ||
+                        m.includes('runway') || m.includes('revenue for') || m.includes('months');
 
-    // Scale each stream proportionally from base $2000 plan
-    const scale = targetUSD / 2000;
-    const teaching   = Math.round(40000 * scale);
-    const courses    = Math.round(30000 * scale);
-    const website    = Math.round(20000 * scale);
-    const books      = Math.round(24000 * scale);
-    const ecommerce  = Math.round(30000 * scale);
-    const whatsapp   = Math.round(25000 * scale);
-    const total      = teaching + courses + website + books + ecommerce + whatsapp;
+    // Base streams (calibrated for $2000 without SAT, $2500 with SAT)
+    const baseTotal = hasSAT ? 207900 : 169000;
+    const scale = (targetUSD * 83) / baseTotal;
 
-    // Detect if asking for 30-day or day-by-day plan
+    const teaching  = 40000 * scale;
+    const courses   = 30000 * scale;
+    const satPrep   = hasSAT ? 45000 * scale : 0;  // 5 students × ₹9,000/month
+    const website   = 20000 * scale;
+    const books     = 24000 * scale;
+    const ecommerce = 30000 * scale;
+    const whatsapp  = 25000 * scale;
+    const total     = teaching + courses + satPrep + website + books + ecommerce + whatsapp;
+
+    const teachN  = Math.ceil(10 * scale);
+    const courseN = Math.ceil(30 * scale);
+    const bookN   = Math.ceil(80 * scale);
+    const orderN  = Math.ceil(50 * scale);
+    const satN    = Math.ceil(5 * scale);
+
     const wants30Day = m.includes('30') || m.includes('day') || m.includes('দিন') ||
-                       m.includes('step') || m.includes('weekly') || m.includes('week') ||
-                       m.includes('detailed') || m.includes('বিস্তারিত') || m.includes('budget') ||
-                       m.includes('invest') || m.includes('cost') || m.includes('খরচ');
-
-    const teachStudents = Math.ceil(10 * scale);
-    const courseStudents = Math.ceil(30 * scale);
-    const bookCopies = Math.ceil(80 * scale);
-    const meeshoOrders = Math.ceil(50 * scale);
+                       m.includes('step') || m.includes('week') || m.includes('detailed') ||
+                       m.includes('বিস্তারিত') || m.includes('budget') || m.includes('cost') || m.includes('খরচ');
 
     let response = `💰 আপনার $${targetUSD}/মাস পরিকল্পনা:\n\n` +
-      `🏫 শিক্ষাদান (Superprof/UrbanPro): ${teachStudents} ছাত্র × ₹৫০০/ঘণ্টা = ${fmt(teaching)}\n` +
-      `📚 EduCreation কোর্স: ${courseStudents} সাবস্ক্রাইবার × ₹৯৯৯ = ${fmt(courses)}\n` +
+      `🏫 শিক্ষাদান (Superprof/UrbanPro): ${teachN} ছাত্র × ₹৫০০/ঘণ্টা = ${fmt(teaching)}\n` +
+      `📚 EduCreation কোর্স: ${courseN} সাবস্ক্রাইবার × ₹৯৯৯ = ${fmt(courses)}\n` +
+      (hasSAT ? `🎓 SAT Prep সাইট: ${satN} ছাত্র × ₹৯,০০০/মাস = ${fmt(satPrep)} ⭐ প্রিমিয়াম\n` : '') +
       `🌐 study-flow.in: বিজ্ঞাপন + প্রিমিয়াম নোটস = ${fmt(website)}\n` +
-      `📖 বই বিক্রি (Amazon KDP): ${bookCopies} কপি × ₹২৯৯ = ${fmt(books)}\n` +
-      `🛒 Meesho/Amazon: ${meeshoOrders} অর্ডার × ₹৬০০ মার্জিন = ${fmt(ecommerce)}\n` +
-      `📱 Vani Sales (WhatsApp ফানেল): ট্রাফিক সব চ্যানেলে = ${fmt(whatsapp)}\n\n` +
+      `📖 বই বিক্রি (Amazon KDP): ${bookN} কপি × ₹২৯৯ = ${fmt(books)}\n` +
+      `🛒 Meesho/Amazon: ${orderN} অর্ডার × ₹৬০০ মার্জিন = ${fmt(ecommerce)}\n` +
+      `📱 Vani Sales (WhatsApp ফানেল): সব চ্যানেলে ট্রাফিক = ${fmt(whatsapp)}\n\n` +
       `✅ মোট: ${fmt(total)} ≈ $${targetUSD}/মাস\n`;
 
+    if (hasSAT) {
+      response += `\n⭐ SAT সাইট আপনার সেরা সুযোগ! SAT প্রিপ একটি প্রিমিয়াম সার্ভিস — ` +
+        `ভারতে ₹৫,০০০–১৫,০০০/মাস এবং বিদেশি ছাত্রদের জন্য $৫০–২০০/মাস চার্জ করা যায়। ` +
+        `মাত্র ৫ জন ছাত্রেই ${fmt(satPrep)} আসে!\n`;
+    }
+
+    if (hasReinvest) {
+      response += `\n🔄 রিইনভেস্টমেন্ট কৌশল (৩–৪ মাস রানওয়ে):\n` +
+        `• মাস ১ আয়ের ৭০% → Facebook/Google Ads-এ লাগান (আরও ছাত্র আনুন)\n` +
+        `• মাস ২ আয়ের ৫০% → SAT সাইট সম্পূর্ণ করুন + ভিডিও কোর্স রেকর্ড করুন\n` +
+        `• মাস ৩ আয়ের ৩০% → Brand building (YouTube চ্যানেল + SEO)\n` +
+        `• মাস ৪ → সব চ্যানেল থেকে প্যাসিভ ইনকাম শুরু হবে\n` +
+        `রানওয়ে থাকায় আপনি ভয় ছাড়া দ্রুত বাড়াতে পারবেন। এটি একটি বড় সুবিধা! 💪\n`;
+    }
+
     if (wants30Day) {
-      response += `\n📅 ৩০ দিনের পরিকল্পনা (বাজেট: ₹১০,০০০):\n\n` +
+      response += `\n📅 ৩০ দিনের পরিকল্পনা:\n\n` +
         `সপ্তাহ ১ (দিন ১–৭) | খরচ: ₹৯৯৯\n` +
-        `• দিন ১: Superprof + UrbanPro প্রোফাইল পূর্ণ করুন (ছবি, ভিডিও, বিষয়)\n` +
-        `• দিন ২: দুটি বই Amazon KDP-তে আপলোড করুন (বিনামূল্যে)\n` +
-        `• দিন ৩: WhatsApp Business সেটআপ করুন — ক্যাটালগ ও কুইক রিপ্লাই\n` +
-        `• দিন ৪: Canva Pro নিন (₹৯৯৯) — কোর্স ব্যানার ও থাম্বনেইল তৈরি\n` +
-        `• দিন ৫–৬: EduCreation-এ প্রথম কোর্স রেকর্ড করুন (ফোনে, ৫ মডিউল)\n` +
+        `• দিন ১: Superprof + UrbanPro প্রোফাইল পূর্ণ করুন (ছবি, ডেমো ভিডিও, বিষয়)\n` +
+        `• দিন ২: দুটি বই Amazon KDP-তে আপলোড করুন (বিনামূল্যে, ₹১৯৯ দাম)\n` +
+        `• দিন ৩: WhatsApp Business চালু করুন — ক্যাটালগ ও কুইক রিপ্লাই সেট করুন\n` +
+        `• দিন ৪: Canva Pro (₹৯৯৯) — SAT সাইট ও EduCreation-এর ব্র্যান্ড গ্রাফিক্স তৈরি\n` +
+        (hasSAT ? `• দিন ৫: SAT সাইটে ফ্রি মক টেস্ট যোগ করুন — এটি lead magnet হিসেবে কাজ করবে\n` : '') +
+        `• দিন ${hasSAT ? '৬' : '৫'}–${hasSAT ? '৭' : '৬'}: EduCreation-এ প্রথম কোর্স রেকর্ড করুন (ফোনে, ৫ মডিউল)\n` +
         `• দিন ৭: কোর্স পাবলিশ করুন ₹৪৯৯ দামে\n\n` +
         `সপ্তাহ ২ (দিন ৮–১৪) | খরচ: ₹৪,০০০\n` +
-        `• দিন ৮–৯: Meesho-তে ২০টি পণ্য লিস্ট করুন (স্টেশনারি, হোম আইটেম)\n` +
-        `• দিন ১০: ৩টি রিলস বানান — আপনার শিক্ষাদান প্রমোট করুন\n` +
-        `• দিন ১১: ₹১,০০০ Facebook Ad — ছাত্র টার্গেট (বয়স ১৬–২৫)\n` +
-        `• দিন ১২: WhatsApp ব্রডকাস্ট — সব কন্টাক্টে কোর্স ও বই লিংক\n` +
-        `• দিন ১৩: ₹১,০০০ Instagram Ad — EduCreation কোর্স প্রমোট\n` +
+        `• দিন ৮–৯: Meesho-তে ২০টি পণ্য লিস্ট করুন (স্টেশনারি, হোম ডেকর)\n` +
+        `• দিন ১০: ৩টি Instagram রিলস — "SAT টিপস" ও "পরীক্ষা প্রস্তুতি" নিয়ে\n` +
+        `• দিন ১১: ₹১,০০০ Facebook Ad — ছাত্র টার্গেট (বয়স ১৬–২২, SAT/board exam)\n` +
+        `• দিন ১২: WhatsApp ব্রডকাস্ট — সব কন্টাক্টে কোর্স + বই + SAT সাইট লিংক\n` +
+        `• দিন ১৩: ₹১,০০০ Instagram Ad — EduCreation + SAT সাইট প্রমোট\n` +
         `• দিন ১৪: study-flow.in-এ ৫টি প্রিমিয়াম নোটস যোগ করুন (₹৯৯–১৪৯)\n\n` +
         `সপ্তাহ ৩ (দিন ১৫–২১) | খরচ: ₹৩,০০০\n` +
-        `• দিন ১৫: Google Ads শুরু করুন ₹১০০/দিন — "online tuition" কীওয়ার্ড\n` +
-        `• দিন ১৬–১৭: Superprof/UrbanPro-এর প্রতিটি ইনকোয়ারি ২ ঘণ্টার মধ্যে রিপ্লাই\n` +
-        `• দিন ১৮: Google AdSense-এ apply করুন study-flow.in-এর জন্য\n` +
-        `• দিন ১৯: ₹১,০০০ Facebook Ad আবার চালান — সেরা পারফর্মিং Ad\n` +
-        `• দিন ২০: দ্বিতীয় WhatsApp ব্রডকাস্ট — রিভিউ/টেস্টিমোনিয়াল সহ\n` +
-        `• দিন ২১: কোন চ্যানেল সবচেয়ে ভালো কাজ করছে সেটা বিশ্লেষণ করুন\n\n` +
-        `সপ্তাহ ৪ (দিন ২২–৩০) | খরচ: বাকি বাজেট\n` +
-        `• দিন ২২–২৩: সেরা চ্যানেলে বেশি বিনিয়োগ করুন\n` +
-        `• দিন ২৪: দ্বিতীয় EduCreation কোর্স তৈরি করুন (ছোট, ₹২৯৯)\n` +
-        `• দিন ২৫: Meesho-তে আরও ১০টি পণ্য যোগ করুন\n` +
+        `• দিন ১৫: Google Ads শুরু করুন ₹১০০/দিন — "SAT preparation India" কীওয়ার্ড\n` +
+        `• দিন ১৬–১৭: Superprof/UrbanPro ইনকোয়ারি ২ ঘণ্টার মধ্যে রিপ্লাই করুন\n` +
+        `• দিন ১৮: study-flow.in-এ Google AdSense-এর জন্য apply করুন\n` +
+        `• দিন ১৯: ₹১,০০০ Facebook Ad আবার — সেরা পারফর্মিং Ad ব্যবহার করুন\n` +
+        `• দিন ২০: WhatsApp ব্রডকাস্ট ২ — টেস্টিমোনিয়াল + SAT ফ্রি মক টেস্ট অফার\n` +
+        `• দিন ২১: বিশ্লেষণ করুন — কোন চ্যানেল সবচেয়ে বেশি lead দিচ্ছে?\n\n` +
+        `সপ্তাহ ৪ (দিন ২২–৩০) | রিইনভেস্ট মাস ১-এর আয়\n` +
+        `• দিন ২২–২৩: সেরা চ্যানেলে মাস ১ আয়ের ৭০% বিনিয়োগ করুন\n` +
+        `• দিন ২৪: দ্বিতীয় EduCreation কোর্স তৈরি করুন (₹২৯৯, ছোট ফরম্যাট)\n` +
+        `• দিন ২৫: Meesho-তে আরও ১০টি পণ্য — বিক্রি হওয়া ক্যাটাগরিতে মনোযোগ দিন\n` +
         `• দিন ২৬–২৭: প্রতিটি ছাত্র/ক্রেতার কাছ থেকে রিভিউ চান\n` +
-        `• দিন ২৮–৩০: আয় হিসাব করুন। মাস ২-এর পরিকল্পনা করুন\n\n` +
-        `📊 বাস্তবসম্মত আয় প্রত্যাশা:\n` +
-        `• মাস ১: ₹২০,০০০–৩০,০০০\n` +
-        `• মাস ২: ₹৫০,০০০–৭০,০০০\n` +
-        `• মাস ৩–৪: ₹১,০০,০০০–১,৩০,০০০\n` +
-        `• মাস ৫+: ${fmt(total)} ≈ $${targetUSD} ✅`;
+        `• দিন ২৮–৩০: আয় হিসাব করুন। মাস ২-এর পরিকল্পনা ও বাজেট নির্ধারণ করুন\n\n` +
+        `📊 আয়ের সময়রেখা:\n` +
+        `• মাস ১: ₹২৫,০০০–৩৫,০০০\n` +
+        `• মাস ২: ₹৬০,০০০–৮০,০০০\n` +
+        `• মাস ৩: ₹১,০০,০০০–১,৩০,০০০\n` +
+        `• মাস ৪–৫: ${fmt(total)} ≈ $${targetUSD} ✅`;
     } else {
       response += `\n🎯 প্রথম ৩০ দিনে করুন:\n` +
         `১. Superprof-এ ৫ জন ছাত্র নিন\n` +
-        `২. Meesho-তে ২০টি পণ্য লিস্ট করুন\n` +
+        (hasSAT ? `২. SAT সাইটে ফ্রি মক টেস্ট যোগ করুন (lead magnet)\n` : `২. Meesho-তে ২০টি পণ্য লিস্ট করুন\n`) +
         `৩. বই Amazon KDP-তে আপলোড করুন\n` +
         `৪. EduCreation-এ একটি পেইড কোর্স তৈরি করুন\n\n` +
         `💡 বিস্তারিত দিন-ধরে পরিকল্পনার জন্য জিজ্ঞেস করুন: "৩০ দিনের পরিকল্পনা দাও"`;
